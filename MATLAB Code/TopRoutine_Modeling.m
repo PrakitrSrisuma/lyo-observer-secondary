@@ -8,7 +8,7 @@ close all; clear; clc;
 
 %% Pre-simulation
 % Add paths
-addpath('Input Data', 'Validation Data', 'Saved Data', 'PDEs', 'Events', 'Calculations');
+addpath('Input Data', 'Validation Data', 'Saved Data', 'PDEs', 'Events', 'Calculations','Exporting Graphics');
 
 % Define and extract important input data
 input = get_input_data;  % default inputs
