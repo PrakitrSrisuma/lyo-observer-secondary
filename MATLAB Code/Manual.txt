@@ -1,0 +1,49 @@
+========================================================
+Manual for using the software in lyo-observer-secondary
+========================================================
+
+%%% Adding to Path
+First, add every folder to Path before running any simulation.
+addpath('Input Data', 'PDEs', 'Events', 'Validation Data', 'Exporting Graphics', 'Saved Data');
+
+
+%%% Top-level Routines
+To run a simulation, simply open the top-level routines and click "Run".
+There are two top-level routines in this work.
+1. TopRoutine_Modeling: This routine contains examples for modeling only. No observer.
+2. TopRoutine_Observer: This routine contains several examples for using the state observer. Set 'on' for examples that you want to run.
+
+
+%%% Folders
+1. Calculations: contain functions that calculate the time constant and Jacobian.
+2. Events: contain event functions to terminate the ODE solver
+3. Exporting Graphics: contain functions to set up graphics
+4. Input Data: contain functions to define every input information/parameter
+5. PDEs: contain functions that define the PDEs/ODEs and state observer
+6. Saved Data: some saved data from simulation
+7. Validation Data: data from the literature
+
+
+%%% Defining Input Parameters
+There are a lot of parameters in our model and observer, with many different functions that rely on them. Hence, it is important to systematically define input parameters to ensure that everything is consistent. Here are some key steps.
+1. In the file "get_input_data", define all independent inputs here. "Independent" in this case = that input is not calculated from or relies on any other input.
+2. In the file "input_processing", define all dependent inputs here. "Dependent" in this case = that input must be calculated from some other input parameters. Hence, all formulas/correlations are defined here.
+
+A simple way to extract the inputs is
+ip0 = get_input_data;  % define all independent inputs
+ip = input_processing(ip0);  % pass independent inputs to the function that calculates in dependent inputs
+
+To change the value of each input parameter, you can either correct it directly in "get_input_data" or overwrite it before passing to "input_processing". For example,
+ip0 = get_input_data;  
+ip0.k = 1;  % overwrite the parameter k
+ip = input_processing(ip0); 
+
+With the above syntax, "ip" is the final struct that contains all input parameters. Always pass "ip" to any function that requires input data to ensure that every function and calculation are based on the same set of inputs. When there are changes in any independent inputs, always run "input_processing" to ensure that all dependent inputs are updated using the above syntax.
+
+
+%%% PDE
+Some important functions in the PDE folders.
+PDE_ModelFVM = model equations; no observer
+PDE_Observer = state observer for simulation-based observer design; no experimental data needed as an input.
+PDE_Observer = state observer for experimental-based observer design; measurement must be provided to the function.
+FB indicates feedback, which represents the microwave lyophilization cases.
