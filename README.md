@@ -9,8 +9,8 @@ Srisuma, P., Barbastathis, G., Braatz, R.D., 2024. Real-time estimation of bound
 
 # Example of Simulating a State Observer
 ```
-input = get_input_data; 
-ip = input_processing(input);
+ip0 = get_input_data; 
+ip = input_processing(ip0);
 m = ip.m;
 T0 = ip.T0*ones(m,1);
 cs0 = ip.cs0*ones(m,1);
