@@ -11,8 +11,8 @@ close all; clear; clc;
 addpath('Input Data', 'Validation Data', 'Saved Data', 'PDEs', 'Events', 'Calculations','Exporting Graphics');
 
 % Define and extract important input data
-input = get_input_data; 
-ip = input_processing(input);
+ip0 = get_input_data; 
+ip = input_processing(ip0);
 m = ip.m;
 
 % Mode - set on or off
@@ -23,7 +23,7 @@ ObsDes2 = 'off';  % sim-based design; Fig. 7
 ObsDes3 = 'off';  % sim-based design with noise; Fig. 8
 ObsExp = 'off';  % exp-based design; Fig. 9
 ObsExp2 = 'off';  % exp-based design; Fig. 10  
-ObsMW = 'off';  % for microwave lyo; Fig. 11
+ObsFB = 'off';  % for microwave lyo; Fig. 11
 
 
 %% State Estimation
@@ -31,15 +31,15 @@ switch Obs
 case 'on'
 
 % Observer gain
-input = get_input_data; 
-ip = input_processing(input);
+ip0 = get_input_data; 
+ip = input_processing(ip0);
 
 % Initial conditions
 T0 = ip.T0*ones(m,1);
 cs0 = ip.cs0*ones(m,1);
 
 % ODE solver setup
-tspan = (0:input.dt:input.endtime*3600)';
+tspan = (0:ip.dt:ip.endtime*3600)';
 y0 = [T0;cs0;1.1*T0;zeros(m,1)];
 opts_ode = odeset('RelTol',1e-10,'AbsTol',1e-10);
 
@@ -72,7 +72,7 @@ case 'on'
 Obs0 = figure;
 
 % Observer gain analysis
-input = get_input_data; 
+ip0 = get_input_data; 
 npoint = 20;
 LT = -logspace(-6,-2,npoint);
 Lc = logspace(-8,-6,npoint);
@@ -82,16 +82,16 @@ t0 = [];
 
 for i = 1:length(LT)
     for j = 1:length(Lc)
-        input.LT = LT(i);
-        input.Lc = Lc(j);
-        ip = input_processing(input);
+        ip0.LT = LT(i);
+        ip0.Lc = Lc(j);
+        ip = input_processing(ip0);
     
         % Initial conditions
         T0 = ip.T0*ones(m,1);
         cs0 = ip.cs0*ones(m,1);
         
         % ODE solver setup
-        tspan = (0:input.dt:input.endtime*3600)';
+        tspan = (0:ip.dt:ip.endtime*3600)';
         y0 = [T0;cs0;T0;0.0314*ones(m,1)];
         opts_ode = odeset('RelTol',1e-10,'AbsTol',1e-10);
         
@@ -131,17 +131,17 @@ switch ObsDes1
 case 'on'
 
 % For average values
-input = get_input_data;
-input.LT = -1e-6;
-input.Lc = 5e-7;
-ip = input_processing(input);
+ip0 = get_input_data;
+ip0.LT = -1e-6;
+ip0.Lc = 5e-7;
+ip = input_processing(ip0);
 
 % Initial conditions
 T0 = ip.T0*ones(m,1);
 cs0 = ip.cs0*ones(m,1);
 
 % ODE solver setup
-tspan = (0:input.dt:input.endtime*3600)';
+tspan = (0:ip.dt:ip.endtime*3600)';
 y0 = [T0;cs0;1.1*T0;0.0314*ones(m,1)];
 opts_ode = odeset('RelTol',1e-10,'AbsTol',1e-10);
 
@@ -160,13 +160,13 @@ Tavg_est = mean(T_est,2);
 
 
 % For spatiotemporal properties
-input = get_input_data;  % default inputs
-input.Lc = 5e-7;
-input.LT = 1e-6;
-ip = input_processing(input);
+ip0 = get_input_data;  % default inputs
+ip0.Lc = 5e-7;
+ip0.LT = 1e-6;
+ip = input_processing(ip0);
 
 % ODE solver setup
-tspan = (0:1500:input.endtime*3600)';
+tspan = (0:1500:ip.endtime*3600)';
 y0 = [T0;cs0;1.1*T0;0.6415*ones(m,1)];
 opts_ode = odeset('RelTol',1e-10,'AbsTol',1e-10);
 
@@ -240,20 +240,20 @@ figure; Obs2 = tiledlayout(3,2,'TileSpacing','compact','Padding','compact');
 %%% Case A_min
 ObsA = tiledlayout(Obs2,1,2);
 ObsA.Layout.Tile = 1; 
-input = get_input_data; 
-input.A = 7.8e-5;
-input.Ea = 0;
-input.endtime = 15;
-ip = input_processing(input);
+ip0 = get_input_data; 
+ip0.A = 7.8e-5;
+ip0.Ea = 0;
+ip0.endtime =15;
+ip = input_processing(ip0);
 
 % Initial conditions
 T0 = ip.T0*ones(m,1);
 cs0 = ip.cs0*ones(m,1);
 
 % ODE solver setup
-tspan = (0:input.dt:input.endtime*3600)';
+tspan = (0:ip.dt:ip.endtime*3600)';
 y0 = [T0;cs0;T0;0.0314*ones(m,1)];
-opts_ode = odeset('Event',@(t,y) event_desorption_completes(t,y,input),'RelTol',1e-10,'AbsTol',1e-10);
+opts_ode = odeset('Event',@(t,y) event_desorption_completes(t,y,ip),'RelTol',1e-10,'AbsTol',1e-10);
 
 % Simulation
 tic; [t,y] = ode15s (@(t,y) PDE_Observer(t,y,ip), tspan, y0, opts_ode); toc;
@@ -285,7 +285,7 @@ text(-0.35,1.3,'(A) Variation in frequency factor','Units','normalized','FontSiz
 text(-0.35,1.17,'1. Low case, {\it A} = 7.8\times10^{–5} s^{-1}','Units','normalized','FontSize', 8 ,'fontweight', 'bold');
 
 nexttile(ObsA)
-tspan = (0:1500:input.endtime*3600)';
+tspan = (0:1500:ip.endtime*3600)';
 tic; [t,y] = ode15s (@(t,y) PDE_Observer(t,y,ip), tspan, y0, opts_ode); toc;
 
 % Post-processing
@@ -311,20 +311,20 @@ view(-45,20)
 %%% Case A_max
 ObsA = tiledlayout(Obs2,1,2);
 ObsA.Layout.Tile = 2; 
-input = get_input_data;
-input.A = 1.1e-4;
-input.Ea = 0;
-input.endtime = 15;
-ip = input_processing(input);
+ip0 = get_input_data;
+ip0.A = 1.1e-4;
+ip0.Ea = 0;
+ip0.endtime =15;
+ip = input_processing(ip0);
 
 % Initial conditions
 T0 = ip.T0*ones(m,1);
 cs0 = ip.cs0*ones(m,1);
 
 % ODE solver setup
-tspan = (0:input.dt:input.endtime*3600)';
+tspan = (0:ip.dt:ip.endtime*3600)';
 y0 = [T0;cs0;T0;0.0314*ones(m,1)];
-opts_ode = odeset('Event',@(t,y) event_desorption_completes(t,y,input),'RelTol',1e-10,'AbsTol',1e-10);
+opts_ode = odeset('Event',@(t,y) event_desorption_completes(t,y,ip),'RelTol',1e-10,'AbsTol',1e-10);
 
 % Simulation
 tic; [t,y] = ode15s (@(t,y) PDE_Observer(t,y,ip), tspan, y0, opts_ode); toc;
@@ -353,7 +353,7 @@ set(gca,'XMinorTick','on','YMinorTick','on')
 graphics_setup('3by4')
 text(-0.35,1.17,'2. High case, {\it A} = 1.1\times10^{–4} s^{-1}','Units','normalized','FontSize', 8 ,'fontweight', 'bold');
 nexttile(ObsA)
-tspan = (0:1500:input.endtime*3600)';
+tspan = (0:1500:ip.endtime*3600)';
 tic; [t,y] = ode15s (@(t,y) PDE_Observer(t,y,ip), tspan, y0, opts_ode); toc;
 
 % Post-processing
@@ -379,10 +379,10 @@ view(-45,20)
 %%% Case B_min
 ObsB = tiledlayout(Obs2,1,2);
 ObsB.Layout.Tile = 3; 
-input = get_input_data;
-input.Ea = 5920;
-input.endtime = 15;
-ip = input_processing(input);
+ip0 = get_input_data;
+ip0.Ea = 5920;
+ip0.endtime =15;
+ip = input_processing(ip0);
 
 
 % Initial conditions
@@ -390,9 +390,9 @@ T0 = ip.T0*ones(m,1);
 cs0 = ip.cs0*ones(m,1);
 
 % ODE solver setup
-tspan = (0:input.dt:input.endtime*3600)';
+tspan = (0:ip.dt:ip.endtime*3600)';
 y0 = [T0;cs0;T0;0.0314*ones(m,1)];
-opts_ode = odeset('Event',@(t,y) event_desorption_completes(t,y,input),'RelTol',1e-10,'AbsTol',1e-10);
+opts_ode = odeset('Event',@(t,y) event_desorption_completes(t,y,ip),'RelTol',1e-10,'AbsTol',1e-10);
 
 % Simulation
 tic; [t,y] = ode15s (@(t,y) PDE_Observer(t,y,ip), tspan, y0, opts_ode); toc;
@@ -423,7 +423,7 @@ title({'';'';'';'';''})
 text(-0.35,1.3,'(B) Variation in activation energy','Units','normalized','FontSize', 8,'fontweight', 'bold');
 text(-0.35,1.15,'1. Low case, {\it E_a} = 5,920 J/mol','Units','normalized','FontSize', 8 ,'fontweight', 'bold');
 nexttile(ObsB)
-tspan = (0:1000:input.endtime*3600)';
+tspan = (0:1000:ip.endtime*3600)';
 tic; [t,y] = ode15s (@(t,y) PDE_Observer(t,y,ip), tspan, y0, opts_ode); toc;
 
 % Post-processing
@@ -449,19 +449,19 @@ view(-45,20)
 %%% Case B_max
 ObsB = tiledlayout(Obs2,1,2);
 ObsB.Layout.Tile = 4; 
-input = get_input_data;
-input.Ea = 13416;
-input.endtime = 100;
-ip = input_processing(input);
+ip0 = get_input_data;
+ip0.Ea = 13416;
+ip0.endtime =100;
+ip = input_processing(ip0);
 
 % Initial conditions
 T0 = ip.T0*ones(m,1);
 cs0 = ip.cs0*ones(m,1);
 
 % ODE solver setup
-tspan = (0:input.dt:input.endtime*3600)';
+tspan = (0:ip.dt:ip.endtime*3600)';
 y0 = [T0;cs0;T0;0.0314*ones(m,1)];
-opts_ode = odeset('Event',@(t,y) event_desorption_completes(t,y,input),'RelTol',1e-10,'AbsTol',1e-10);
+opts_ode = odeset('Event',@(t,y) event_desorption_completes(t,y,ip),'RelTol',1e-10,'AbsTol',1e-10);
 
 % Simulation
 tic; [t,y] = ode15s (@(t,y) PDE_Observer(t,y,ip), tspan, y0, opts_ode); toc;
@@ -489,7 +489,7 @@ graphics_setup('3by4')
 xlim([0 50])
 text(-0.35,1.15,'2. High case, {\it E_a} = 13,416 J/mol','Units','normalized','FontSize', 8 ,'fontweight', 'bold');
 nexttile(ObsB)
-tspan = (0:8000:input.endtime*3600)';
+tspan = (0:8000:ip.endtime*3600)';
 tic; [t,y] = ode15s (@(t,y) PDE_Observer(t,y,ip), tspan, y0, opts_ode); toc;
 
 % Post-processing
@@ -516,18 +516,18 @@ view(-45,20)
 %%% Case C_min
 ObsC = tiledlayout(Obs2,1,2);
 ObsC.Layout.Tile = 5; 
-input = get_input_data; 
-input.cs0 = 0.0314;
-ip = input_processing(input);
+ip0 = get_input_data; 
+ip0.cs0 = 0.0314;
+ip = input_processing(ip0);
 
 % Initial conditions
 T0 = ip.T0*ones(m,1);
 cs0 = ip.cs0*ones(m,1);
 
 % ODE solver setup
-tspan = (0:input.dt:input.endtime*3600)';
+tspan = (0:ip.dt:ip.endtime*3600)';
 y0 = [T0;cs0;T0;0.0314*ones(m,1)];
-opts_ode = odeset('Event',@(t,y) event_desorption_completes(t,y,input),'RelTol',1e-10,'AbsTol',1e-10);
+opts_ode = odeset('Event',@(t,y) event_desorption_completes(t,y,ip),'RelTol',1e-10,'AbsTol',1e-10);
 
 % Simulation
 tic; [t,y] = ode15s (@(t,y) PDE_Observer(t,y,ip), tspan, y0, opts_ode); toc;
@@ -558,7 +558,7 @@ title({'';'';'';''})
 text(-0.35,1.3,'(C) Variation in initial concentration','Units','normalized','FontSize', 8,'fontweight', 'bold');
 text(-0.35,1.15,'1. Low case, {\itc_s}_{,0} = 0.0314 kg water/kg solid','Units','normalized','FontSize', 8 ,'fontweight', 'bold');
 nexttile(ObsC)
-tspan = (0:1000:input.endtime*3600)';
+tspan = (0:1000:ip.endtime*3600)';
 tic; [t,y] = ode15s (@(t,y) PDE_Observer(t,y,ip), tspan, y0, opts_ode); toc;
 
 % Post-processing
@@ -586,19 +586,19 @@ view(-45,20)
 %%% Case C_max
 ObsC = tiledlayout(Obs2,1,2);
 ObsC.Layout.Tile = 6; 
-input = get_input_data;
-input.cs0 = 0.6415;
-input.endtime = 100;
-ip = input_processing(input);
+ip0 = get_input_data;
+ip0.cs0 = 0.6415;
+ip0.endtime =100;
+ip = input_processing(ip0);
 
 % Initial conditions
 T0 = ip.T0*ones(m,1);
 cs0 = ip.cs0*ones(m,1);
 
 % ODE solver setup
-tspan = (0:input.dt:input.endtime*3600)';
+tspan = (0:ip.dt:ip.endtime*3600)';
 y0 = [T0;cs0;T0;0.0314*ones(m,1)];
-opts_ode = odeset('Event',@(t,y) event_desorption_completes(t,y,input),'RelTol',1e-10,'AbsTol',1e-10);
+opts_ode = odeset('Event',@(t,y) event_desorption_completes(t,y,ip),'RelTol',1e-10,'AbsTol',1e-10);
 
 % Simulation
 tic; [t,y] = ode15s (@(t,y) PDE_Observer(t,y,ip), tspan, y0, opts_ode); toc;
@@ -627,7 +627,7 @@ xlim([0 10])
 set(gca,'XMinorTick','on','YMinorTick','on') 
 text(-0.35,1.15,'2. High case, {\itc_s}_{,0} = 0.6415 kg water/kg solid','Units','normalized','FontSize', 8 ,'fontweight', 'bold');
 nexttile(ObsC)
-tspan = (0:2000:input.endtime*3600)';
+tspan = (0:2000:ip.endtime*3600)';
 tic; [t,y] = ode15s (@(t,y) PDE_Observer(t,y,ip), tspan, y0, opts_ode); toc;
 
 % Post-processing
@@ -659,9 +659,9 @@ case 'on'
 figure; Obs3 = tiledlayout(2,3,'TileSpacing','loose','Padding','compact');
 
 % Input
-input = get_input_data; 
-input.Lc = 5e-7;
-ip = input_processing(input);
+ip0 = get_input_data; 
+ip0.Lc = 5e-7;
+ip = input_processing(ip0);
 T0 = ip.T0*ones(m,1);
 cs0 = ip.cs0*ones(m,1);
 T_noisy = load('Sim_T_noisy').T_noisy;
@@ -669,7 +669,7 @@ Tavg_noisy = mean(T_noisy,2);
 noise = load('Sim_noise').noise;
 
 % ODE solver setup
-tspan = (0:input.dt:input.endtime*3600)';
+tspan = (0:ip.dt:ip.endtime*3600)';
 y0 = [T0;cs0;T0;0.0314*ones(m,1)];
 opts_ode = odeset('RelTol',1e-10,'AbsTol',1e-10);
 
@@ -703,12 +703,12 @@ graphics_setup('2by3')
 
 
 %%% Simulation 2
-input = get_input_data;  % default inputs
-input.Lc = 2e-7;
-ip = input_processing(input);
+ip0 = get_input_data;  % default inputs
+ip0.Lc = 2e-7;
+ip = input_processing(ip0);
 
 % ODE solver setup
-tspan = (0:input.dt:input.endtime*3600)';
+tspan = (0:ip.dt:ip.endtime*3600)';
 opts_ode = odeset('RelTol',1e-10,'AbsTol',1e-10);
 
 % Simulation
@@ -738,9 +738,9 @@ graphics_setup('2by3')
 
 
 %%% Simulation 3
-input = get_input_data; 
-input.Lc = 1e-7;
-ip = input_processing(input);
+ip0 = get_input_data; 
+ip0.Lc = 1e-7;
+ip = input_processing(ip0);
 
 % Simulation
 tic; [t,y] = ode15s (@(t,y) PDE_Observer_Noise(t,y,T_noisy,ip), tspan, y0, opts_ode); toc;
@@ -771,8 +771,8 @@ graphics_setup('2by3')
 
 
 %%% Simulation 3
-input = get_input_data; 
-ip = input_processing(input);
+ip0 = get_input_data; 
+ip = input_processing(ip0);
 tau_0 = cal_timeconstant(ip).tau_0;
 
 % Simulation
@@ -803,9 +803,9 @@ set(gca,'XMinorTick','on','YMinorTick','on')
 graphics_setup('2by3')
 
 
-input = get_input_data; 
-ip = input_processing(input);
-tspan = (0:1500:input.endtime*3600)';
+ip0 = get_input_data; 
+ip = input_processing(ip0);
+tspan = (0:1500:ip.endtime*3600)';
 
 % Simulation
 tic; [t,y] = ode15s (@(t,y) PDE_Observer_Scheduling(t,y,T_noisy,tau_0,ip), tspan, y0, opts_ode); toc;
@@ -856,8 +856,8 @@ T_sim = load('Data1Sim_Temp.mat').T;
 data = load('Data1.mat').cs;
 cs_exp = data(:,2);
 t_exp = data(:,1);
-input = get_input_data_exp1; 
-ip = input_processing(input);
+ip0 = get_input_data_exp1; 
+ip = input_processing(ip0);
 
 % Initial conditions
 T0 = ip.T0*ones(m,1);
@@ -902,9 +902,8 @@ T_sim = load('Data5Sim_Temp.mat').T;
 data = load('Data5.mat').cs;
 cs_exp = data(:,2);
 t_exp = data(:,1);
-input = get_input_data_exp5; 
-% input.LT = -3e-5;
-ip = input_processing(input);
+ip0 = get_input_data_exp5; 
+ip = input_processing(ip0);
 
 % Initial conditions
 T0 = ip.T0*ones(m,1);
@@ -948,11 +947,11 @@ t_sim = load('Data4Sim_t.mat').t;
 T_sim = load('Data4Sim_TB.mat').TB;
 cs_exp = load('Data4_cs.mat').cs;
 cs_avg = load('Data4Sim_csavg.mat').cs_avg;
-input = get_input_data_exp4; 
-input.obs = 'OneTemp';
-input.LT = -5e-3;
-input.Lc = 1e-4;
-ip = input_processing(input);
+ip0 = get_input_data_exp4; 
+ip0.obs = 'OneTemp';
+ip0.LT = -5e-3;
+ip0.Lc = 1e-4;
+ip = input_processing(ip0);
 
 % Initial conditions
 T0 = ip.T0*ones(m,1);
@@ -1002,11 +1001,11 @@ t_sim = load('Data3Sim_t.mat').t;
 T_sim = load('Data3Sim_TB.mat').TB;
 cs_exp = load('Data3_cs.mat').cs;
 cs_avg = load('Data3Sim_csavg.mat').cs_avg;
-input = get_input_data_exp3; 
-input.obs = 'OneTemp';
-input.LT = -5e-3;
-input.Lc = 1e-4;
-ip = input_processing(input);
+ip0 = get_input_data_exp3; 
+ip0.obs = 'OneTemp';
+ip0.LT = -5e-3;
+ip0.Lc = 1e-4;
+ip = input_processing(ip0);
 
 % Initial conditions
 T0 = ip.T0*ones(m,1);
@@ -1061,9 +1060,9 @@ T_sim = load('Data1Sim_Temp.mat').T;
 data = load('Data1.mat').cs;
 cs_exp = data(:,2);
 t_exp = data(:,1);
-input = get_input_data_exp1; 
-input.h = input.h-0.1*input.h;
-ip = input_processing(input);
+ip0 = get_input_data_exp1; 
+ip0.h = ip.h-0.1*ip.h;
+ip = input_processing(ip0);
 
 % Initial conditions
 T0 = ip.T0*ones(m,1);
@@ -1107,9 +1106,9 @@ T_sim = load('Data5Sim_Temp.mat').T;
 data = load('Data5.mat').cs;
 cs_exp = data(:,2);
 t_exp = data(:,1);
-input = get_input_data_exp5; 
-input.h = input.h + 0.1*input.h;
-ip = input_processing(input);
+ip0 = get_input_data_exp5; 
+ip0.h = ip.h + 0.1*ip.h;
+ip = input_processing(ip0);
 
 % Initial conditions
 T0 = ip.T0*ones(m,1);
@@ -1149,16 +1148,16 @@ graphics_setup('1by2')
 end
 
 
-%% State Estimation
-switch ObsMW
+%% State Estimation for Microwave Lyophilization
+switch ObsFB
 case 'on'
 
 % Observer gain
-input = get_input_data;
-input.endtime = 8;
-input.mode = 'MFD';
-input.K = 1000;
-ip = input_processing(input);
+ip0 = get_input_data;
+ip0.endtime =8;
+ip0.mode = 'MFD';
+ip0.K = 1000;
+ip = input_processing(ip0);
 
 % Initial conditions
 T0 = ip.T0*ones(m,1);
@@ -1166,7 +1165,7 @@ cs0 = ip.cs0*ones(m,1);
 noise = ip.noise;
 
 % ODE solver setup
-tspan = (0:input.dt:input.endtime*3600)';
+tspan = (0:ip.dt:ip.endtime*3600)';
 y0 = [T0;cs0;T0;0.0314*ones(m,1)];
 opts_ode = odeset('RelTol',1e-10,'AbsTol',1e-10);
 
@@ -1184,10 +1183,10 @@ cs_avg = mean(cs,2);
 
 
 %%% CFD
-input = get_input_data; 
-input.mode = 'CFD';
-input.endtime = 8;
-ip = input_processing(input);
+ip0 = get_input_data; 
+ip0.mode = 'CFD';
+ip0.endtime =8;
+ip = input_processing(ip0);
 
 % Initial conditions
 T0 = ip.T0*ones(m,1);
@@ -1197,7 +1196,7 @@ cs0 = ip.cs0*ones(m,1);
 tspan = (0:ip.dt:ip.endtime*3600)';
 y0 = [T0;cs0];
 opts_ode = odeset('RelTol',1e-10,'AbsTol',1e-10);
-opts_terminate = odeset('Event',@(t,y) event_desorption_completes(t,y,input),'RelTol',1e-10,'AbsTol',1e-10);
+opts_terminate = odeset('Event',@(t,y) event_desorption_completes(t,y,ip),'RelTol',1e-10,'AbsTol',1e-10);
 
 % Simulation
 tic; [t2,y2] = ode15s (@(t,y) PDE_ModelFVM(t,y,ip), tspan, y0, opts_ode); toc;
