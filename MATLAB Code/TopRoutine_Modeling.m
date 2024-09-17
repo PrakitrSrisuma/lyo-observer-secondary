@@ -11,8 +11,8 @@ close all; clear; clc;
 addpath('Input Data', 'Validation Data', 'Saved Data', 'PDEs', 'Events', 'Calculations','Exporting Graphics');
 
 % Define and extract important input data
-input = get_input_data;  % default inputs
-ip = input_processing(input);
+ip0 = get_input_data;  % default inputs
+ip = input_processing(ip0);
 m = ip.m;
 
 % This corresponds to Fig. 3 in the paper.
@@ -22,8 +22,8 @@ Exp = tiledlayout(2,2,'TileSpacing','loose','Padding','compact');
 %% Validation data 1
 filename = 'Data1.mat';
 cs_exp = load(filename).cs;
-input = get_input_data_exp1;
-ip = input_processing(input);
+ip0 = get_input_data_exp1;
+ip = input_processing(ip0);
 
 % Initial conditions
 T0 = ip.T0*ones(m,1);
@@ -62,8 +62,8 @@ graphics_setup('2by2')
 %% Validation data 2
 filename = 'Data2.mat';
 cs_exp = load(filename).cs;
-input = get_input_data_exp2; 
-ip = input_processing(input);
+ip0 = get_input_data_exp2; 
+ip = input_processing(ip0);
 
 % Initial conditions
 T0 = ip.T0*ones(m,1);
@@ -100,8 +100,8 @@ filename = 'Data3_cs.mat';
 filename2 = 'Data3_T.mat';
 cs_exp = load(filename).cs;
 T_exp = load(filename2).T;
-input = get_input_data_exp3;
-ip = input_processing(input);
+ip0 = get_input_data_exp3;
+ip = input_processing(ip0);
 
 % Initial conditions
 T0 = ip.T0*ones(m,1);
@@ -144,4 +144,3 @@ xticks(0:1:6)
 h.ItemTokenSize(1) = 15;
 graphics_setup('2by2')
 set(gca,'XMinorTick','on','YMinorTick','on') 
-
