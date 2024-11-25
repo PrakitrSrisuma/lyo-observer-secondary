@@ -39,7 +39,7 @@ Hence, all formulas/correlations are defined here.
 
 A simple way to extract the inputs is
 ip0 = get_input_data;  % define all independent inputs
-ip = input_processing(ip0);  % pass independent inputs to the function that calculates in dependent inputs
+ip = input_processing(ip0);  % pass independent inputs to the function that calculates dependent inputs
 
 To change the value of each input parameter, you can either correct it directly in "get_input_data" 
 or overwrite it before passing to "input_processing". For example,
